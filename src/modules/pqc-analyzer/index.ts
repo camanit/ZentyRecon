@@ -1,15 +1,26 @@
 // ============================================================
-// Module 6: PQC Readiness Analyzer (NIST FIPS 203/204 & CBOM)
+// Module 6: PQC Readiness & Threat Intelligence Analyzer
+// Integrates NIST FIPS, CSP Evaluator, HSTS Preload & CT Logs
 // ============================================================
 
 import type { PqcScore } from '@/types';
 import { sendMessage } from '@/utils/messaging';
+import {
+  auditCsp,
+  auditHsts,
+  isLocalOrPrivateHost,
+  queryCertificateTransparency,
+  type CtSubdomain,
+} from '@/utils/security-audit';
 
 export const PqcAnalyzerModule = {
   container: null as HTMLElement | null,
   currentScore: null as PqcScore | null,
   currentDomain: '',
   securityHeaders: {} as Record<string, string>,
+  ctSubdomains: [] as CtSubdomain[],
+  isScanningCt: false,
+  activeSubView: 'pqc' as 'pqc' | 'csp' | 'ct',
 
   mount(el: HTMLElement): void {
     this.container = el;
@@ -43,7 +54,23 @@ export const PqcAnalyzerModule = {
         this.currentDomain = urlStr;
       }
 
-      if (!isHttps) {
+      const isLocal = isLocalOrPrivateHost(this.currentDomain);
+
+      if (isLocal) {
+        this.currentScore = {
+          score: 80,
+          grade: 'B',
+          label: 'Localhost / Private LAN',
+          cipherSuite: 'Internal Network Tunnel',
+          keyExchange: 'Internal Loopback / Self-Signed',
+          isPqcHybrid: false,
+          isFullPqc: false,
+          recommendations: [
+            'Target is hosted on a local or private address.',
+            'Production deployment should enforce TLS 1.3 and hybrid ML-KEM exchange.',
+          ],
+        };
+      } else if (!isHttps) {
         this.currentScore = {
           score: 10,
           grade: 'F',
@@ -162,23 +189,60 @@ export const PqcAnalyzerModule = {
     if (!this.container || !this.currentScore) return;
 
     const s = this.currentScore;
+    const isLocal = isLocalOrPrivateHost(this.currentDomain);
     const gradeColor = s.grade === 'A' ? '#10b981' : s.grade === 'B' ? '#06b6d4' : s.grade === 'C' ? '#f59e0b' : '#ef4444';
 
     this.container.innerHTML = `
+      <!-- Sub-view navigation -->
+      <div class="zr-card" style="padding: 6px;">
+        <div style="display: flex; gap: 4px;">
+          <button class="view-btn ${this.activeSubView === 'pqc' ? 'active' : ''}" data-view="pqc" style="flex:1; padding: 5px; font-size: 10px; font-weight:700; border-radius: 4px; border: 1px solid var(--border); background: ${this.activeSubView === 'pqc' ? 'rgba(139,92,246,0.25)' : 'transparent'}; color: var(--text); cursor: pointer;">
+            ⚛ PQC & Crypto
+          </button>
+          <button class="view-btn ${this.activeSubView === 'csp' ? 'active' : ''}" data-view="csp" style="flex:1; padding: 5px; font-size: 10px; font-weight:700; border-radius: 4px; border: 1px solid var(--border); background: ${this.activeSubView === 'csp' ? 'rgba(139,92,246,0.25)' : 'transparent'}; color: #38bdf8; cursor: pointer;">
+            🛡 CSP & Headers
+          </button>
+          <button class="view-btn ${this.activeSubView === 'ct' ? 'active' : ''}" data-view="ct" style="flex:1; padding: 5px; font-size: 10px; font-weight:700; border-radius: 4px; border: 1px solid var(--border); background: ${this.activeSubView === 'ct' ? 'rgba(139,92,246,0.25)' : 'transparent'}; color: #ec4899; cursor: pointer;">
+            📜 CT Logs
+          </button>
+        </div>
+      </div>
+
+      ${isLocal ? `
+        <div class="zr-card" style="background: rgba(6,182,212,0.08); border-color: rgba(6,182,212,0.3);">
+          <div style="font-size: 11px; color: #38bdf8; font-weight: 700;">
+            🏠 Localhost / Private LAN Environment
+          </div>
+          <div style="font-size: 10px; color: var(--muted); margin-top: 2px;">
+            Target operates on internal network. Public certificate validation is bypassed.
+          </div>
+        </div>
+      ` : ''}
+
+      ${this.activeSubView === 'pqc' ? this.renderPqcView(s, gradeColor) : ''}
+      ${this.activeSubView === 'csp' ? this.renderCspView() : ''}
+      ${this.activeSubView === 'ct' ? this.renderCtView() : ''}
+    `;
+
+    this.bindEvents();
+  },
+
+  renderPqcView(s: PqcScore, gradeColor: string): string {
+    return `
       <!-- Score Hero Card -->
-      <div class="zr-card" style="text-align: center; padding: 16px;">
-        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 8px;">
+      <div class="zr-card" style="text-align: center; padding: 14px;">
+        <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 6px;">
           PQC Readiness Index
         </div>
-        <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-          <div style="font-size: 44px; font-weight: 900; color: ${gradeColor}; font-family: 'JetBrains Mono', monospace; line-height: 1;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+          <div style="font-size: 40px; font-weight: 900; color: ${gradeColor}; font-family: 'JetBrains Mono', monospace; line-height: 1;">
             ${s.score}
           </div>
-          <div style="font-size: 26px; font-weight: 800; color: ${gradeColor}; border: 2px solid ${gradeColor}; border-radius: 8px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;">
+          <div style="font-size: 24px; font-weight: 800; color: ${gradeColor}; border: 2px solid ${gradeColor}; border-radius: 8px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
             ${s.grade}
           </div>
         </div>
-        <div style="font-size: 13px; font-weight: 700; color: var(--text); margin-top: 8px;">
+        <div style="font-size: 12px; font-weight: 700; color: var(--text); margin-top: 6px;">
           ${s.label}
         </div>
       </div>
@@ -187,20 +251,20 @@ export const PqcAnalyzerModule = {
       <div class="zr-card">
         <div class="card-header">
           <span class="card-title">NIST Post-Quantum Standards</span>
-          <button id="btn-export-cbom" class="copy-btn" title="Export Cryptographic Bill of Materials (CBOM)">CBOM Export</button>
+          <button id="btn-export-cbom" class="copy-btn" title="Export Cryptographic Bill of Materials">CBOM Export</button>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; background: rgba(255,255,255,0.02); border-radius: 6px;">
+        <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 6px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; background: rgba(255,255,255,0.02); border-radius: 6px;">
             <div>
               <div style="font-weight: 700; font-size: 11px; color: var(--text);">FIPS 203 (ML-KEM / Kyber)</div>
               <div style="font-size: 9px; color: var(--muted);">Key Encapsulation Mechanism</div>
             </div>
             <span class="badge" style="${s.isPqcHybrid ? 'background: rgba(16,185,129,0.15); color: #10b981;' : 'background: rgba(239,68,68,0.15); color: #ef4444;'}">
-              ${s.isPqcHybrid ? 'Hybrid Active' : 'Not Implemented'}
+              ${s.isPqcHybrid ? 'Hybrid Active' : 'Classical'}
             </span>
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; background: rgba(255,255,255,0.02); border-radius: 6px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; background: rgba(255,255,255,0.02); border-radius: 6px;">
             <div>
               <div style="font-weight: 700; font-size: 11px; color: var(--text);">FIPS 204 (ML-DSA / Dilithium)</div>
               <div style="font-size: 9px; color: var(--muted);">Digital Signatures & Certificates</div>
@@ -210,7 +274,7 @@ export const PqcAnalyzerModule = {
             </span>
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; background: rgba(255,255,255,0.02); border-radius: 6px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; background: rgba(255,255,255,0.02); border-radius: 6px;">
             <div>
               <div style="font-weight: 700; font-size: 11px; color: var(--text);">FIPS 205 (SLH-DSA / SPHINCS+)</div>
               <div style="font-size: 9px; color: var(--muted);">Stateless Hash-based Signatures</div>
@@ -221,57 +285,105 @@ export const PqcAnalyzerModule = {
           </div>
         </div>
       </div>
+    `;
+  },
 
-      <!-- Actionable Guidance -->
+  renderCspView(): string {
+    const rawCsp = this.securityHeaders['content-security-policy'];
+    const rawHsts = this.securityHeaders['strict-transport-security'];
+    const cspAudit = auditCsp(rawCsp);
+    const hstsAudit = auditHsts(rawHsts);
+
+    return `
       <div class="zr-card">
         <div class="card-header">
-          <span class="card-title">Remediation Guidance</span>
-          <span class="badge badge-pro">Action Plan</span>
+          <span class="card-title">Content Security Policy</span>
+          <span class="badge ${cspAudit.hasCsp ? 'badge-free' : 'badge-pro'}">
+            Score: ${cspAudit.score}/100 (${cspAudit.grade})
+          </span>
         </div>
-        <ul style="list-style: none; display: flex; flex-direction: column; gap: 6px; margin-top: 6px;">
-          ${s.recommendations.map((r) => `
-            <li style="font-size: 11px; color: var(--text); display: flex; gap: 6px; line-height: 1.5;">
-              <span style="color: #a78bfa;">▪</span>
-              <span>${r}</span>
-            </li>
+        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px;">
+          ${cspAudit.findings.map((f) => `
+            <div style="padding: 6px 8px; border-radius: 6px; background: ${f.severity === 'high' ? 'rgba(239,68,68,0.1)' : f.severity === 'medium' ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${f.severity === 'high' ? 'rgba(239,68,68,0.25)' : f.severity === 'medium' ? 'rgba(245,158,11,0.25)' : 'rgba(255,255,255,0.05)'};">
+              <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 10px; color: ${f.severity === 'high' ? '#ef4444' : f.severity === 'medium' ? '#f59e0b' : '#38bdf8'};">
+                <span>${f.directive}</span>
+                <span style="text-transform: uppercase;">${f.severity}</span>
+              </div>
+              <div style="font-size: 10px; color: var(--text); margin-top: 2px;">${f.issue}</div>
+              <div style="font-size: 9px; color: var(--muted); margin-top: 2px;">💡 ${f.recommendation}</div>
+            </div>
           `).join('')}
-        </ul>
+        </div>
       </div>
 
-      <!-- Live Security Headers Inspection -->
       <div class="zr-card">
         <div class="card-header">
-          <span class="card-title">HTTP Security Headers</span>
-          <span class="badge badge-free">Live Inspect</span>
+          <span class="card-title">HSTS Preload Verification</span>
+          <span class="badge ${hstsAudit.isPreloadReady ? 'badge-free' : 'badge-pro'}">
+            ${hstsAudit.isPreloadReady ? 'Preload Eligible ✓' : 'Standard'}
+          </span>
         </div>
-        <div style="font-size: 11px; line-height: 1.8; margin-top: 4px;">
-          <div style="display: flex; justify-content: space-between;">
-            <span>Strict-Transport-Security (HSTS):</span>
-            <span style="font-weight: 700; color: ${this.securityHeaders['strict-transport-security'] ? '#10b981' : '#ef4444'};">
-              ${this.securityHeaders['strict-transport-security'] ? 'Enabled ✓' : 'Missing ⚠️'}
-            </span>
-          </div>
-          <div style="display: flex; justify-content: space-between;">
-            <span>Content-Security-Policy (CSP):</span>
-            <span style="font-weight: 700; color: ${this.securityHeaders['content-security-policy'] ? '#10b981' : '#f59e0b'};">
-              ${this.securityHeaders['content-security-policy'] ? 'Enforced ✓' : 'Missing ⚠️'}
-            </span>
-          </div>
-          <div style="display: flex; justify-content: space-between;">
-            <span>X-Frame-Options (Clickjacking):</span>
-            <span style="font-weight: 700; color: ${this.securityHeaders['x-frame-options'] ? '#10b981' : '#f59e0b'};">
-              ${this.securityHeaders['x-frame-options'] ? 'Protected ✓' : 'Unset'}
-            </span>
-          </div>
+        <div style="font-size: 11px; line-height: 1.8; color: var(--muted); margin-top: 4px;">
+          <div>Status: <span style="color: ${hstsAudit.isPreloadReady ? '#10b981' : '#f59e0b'}; font-weight: 600;">${hstsAudit.status}</span></div>
+          <div>Max-Age: <span class="mono" style="color: #38bdf8;">${hstsAudit.maxAge} seconds (${(hstsAudit.maxAge / 86400).toFixed(0)} days)</span></div>
+          <div>SubDomains: <span style="color: ${hstsAudit.includesSubDomains ? '#10b981' : '#ef4444'};">${hstsAudit.includesSubDomains ? 'Included ✓' : 'Not Included'}</span></div>
+          <div>Preload Directive: <span style="color: ${hstsAudit.hasPreloadFlag ? '#10b981' : '#ef4444'};">${hstsAudit.hasPreloadFlag ? 'Set ✓' : 'Missing'}</span></div>
         </div>
       </div>
     `;
+  },
 
-    this.bindEvents();
+  renderCtView(): string {
+    return `
+      <div class="zr-card">
+        <div class="card-header">
+          <span class="card-title">Certificate Transparency Logs</span>
+          <button id="btn-scan-ct" class="copy-btn" style="color: #ec4899;">
+            ${this.isScanningCt ? 'Querying crt.sh...' : 'Fetch CT Logs'}
+          </button>
+        </div>
+        <p style="font-size: 11px; color: var(--muted); margin-top: 4px;">
+          Discovers historical certificates, subdomains, and wildcard SANs issued for <span class="mono" style="color: #38bdf8;">${this.currentDomain || 'target'}</span>.
+        </p>
+      </div>
+
+      <div class="zr-card" style="flex: 1; overflow-y: auto; max-height: 380px;">
+        <div class="card-header">
+          <span class="card-title">Discovered Subdomains (${this.ctSubdomains.length})</span>
+        </div>
+        ${this.ctSubdomains.length === 0 ? `
+          <p style="color: var(--muted); font-size: 11px; text-align: center; padding: 16px 0;">
+            ${this.isScanningCt ? 'Querying crt.sh public database...' : 'Click "Fetch CT Logs" to query Certificate Transparency records.'}
+          </p>
+        ` : `
+          <ul class="zr-list" style="margin-top: 6px;">
+            ${this.ctSubdomains.map((ct) => `
+              <li style="padding: 6px 8px; background: rgba(255,255,255,0.02); border-radius: 6px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 4px;">
+                <div style="font-weight: 700; font-size: 11px; color: #38bdf8;" class="mono">${ct.subdomain}</div>
+                <div style="display: flex; justify-content: space-between; font-size: 9px; color: var(--muted); margin-top: 2px;">
+                  <span>${ct.issuer}</span>
+                  <span>${ct.loggedAt}</span>
+                </div>
+              </li>
+            `).join('')}
+          </ul>
+        `}
+      </div>
+    `;
   },
 
   bindEvents(): void {
     if (!this.container) return;
+
+    this.container.querySelectorAll<HTMLButtonElement>('.view-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const view = btn.dataset.view as typeof this.activeSubView;
+        if (view) {
+          this.activeSubView = view;
+          this.render();
+        }
+      });
+    });
 
     this.container.querySelector('#btn-export-cbom')?.addEventListener('click', () => {
       const cbom = this.generateCbom();
@@ -282,6 +394,16 @@ export const PqcAnalyzerModule = {
       a.download = `cbom-${this.currentDomain || 'target'}-${Date.now()}.json`;
       a.click();
       URL.revokeObjectURL(url);
+    });
+
+    this.container.querySelector('#btn-scan-ct')?.addEventListener('click', async () => {
+      if (this.isScanningCt) return;
+      this.isScanningCt = true;
+      this.render();
+
+      this.ctSubdomains = await queryCertificateTransparency(this.currentDomain);
+      this.isScanningCt = false;
+      this.render();
     });
   },
 };

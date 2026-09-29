@@ -27,9 +27,73 @@ const MODULE_LABELS: Record<ModuleId, string> = {
 // ── State ────────────────────────────────────────────────────
 let activeModule: ModuleId = 'tech-detector';
 let currentTabId: number | null = null;
+let autoScanEnabled = true;
+
+// ── Preferences ──────────────────────────────────────────────
+async function loadPreferences() {
+  const data = (await chrome.storage.local.get(['zr_compact', 'zr_fontsize', 'zr_autoscan'])) as {
+    zr_compact?: boolean;
+    zr_fontsize?: string;
+    zr_autoscan?: boolean;
+  };
+  const compact = data.zr_compact === true;
+  const fontSize = typeof data.zr_fontsize === 'string' ? data.zr_fontsize : '13px';
+  autoScanEnabled = data.zr_autoscan !== false;
+
+  document.body.classList.toggle('compact-mode', compact);
+  document.body.style.fontSize = fontSize;
+
+  const chkCompact = document.getElementById('pref-compact') as HTMLInputElement | null;
+  const selFont = document.getElementById('pref-fontsize') as HTMLSelectElement | null;
+  const chkAuto = document.getElementById('pref-autoscan') as HTMLInputElement | null;
+
+  if (chkCompact) chkCompact.checked = compact;
+  if (selFont) selFont.value = fontSize;
+  if (chkAuto) chkAuto.checked = autoScanEnabled;
+
+  chkCompact?.addEventListener('change', async (e) => {
+    const isChecked = (e.target as HTMLInputElement).checked;
+    document.body.classList.toggle('compact-mode', isChecked);
+    await chrome.storage.local.set({ zr_compact: isChecked });
+  });
+
+  selFont?.addEventListener('change', async (e) => {
+    const size = (e.target as HTMLSelectElement).value;
+    document.body.style.fontSize = size;
+    await chrome.storage.local.set({ zr_fontsize: size });
+  });
+
+  chkAuto?.addEventListener('change', async (e) => {
+    autoScanEnabled = (e.target as HTMLInputElement).checked;
+    await chrome.storage.local.set({ zr_autoscan: autoScanEnabled });
+  });
+}
+
+function setupModal() {
+  const modal = document.getElementById('settings-modal');
+  const btnSettings = document.getElementById('btn-settings');
+  const btnClose = document.getElementById('modal-close');
+
+  btnSettings?.addEventListener('click', () => {
+    modal?.classList.remove('hidden');
+  });
+
+  btnClose?.addEventListener('click', () => {
+    modal?.classList.add('hidden');
+  });
+
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      modal.classList.add('hidden');
+    }
+  });
+}
 
 // ── Init ─────────────────────────────────────────────────────
 async function init() {
+  await loadPreferences();
+  setupModal();
+
   // Mount all modules
   TechDetectorModule.mount(document.getElementById('module-tech-detector')!);
   DomExtractorModule.mount(document.getElementById('module-dom-extractor')!);
@@ -64,7 +128,7 @@ async function init() {
       title: tab.title ?? '',
       favicon: tab.favIconUrl,
     });
-    scanCurrentTab(tab.id);
+    if (autoScanEnabled) scanCurrentTab(tab.id);
   }
 
   // Listen for tab changes from service worker
@@ -73,10 +137,7 @@ async function init() {
       const ctx = msg.payload as TabContext;
       currentTabId = ctx.tabId;
       updateTabContext(ctx);
-      scanCurrentTab(ctx.tabId);
-    }
-    if (msg.type === 'SCAN_RESULT' && msg.payload) {
-      // Data comes back from content script via SW
+      if (autoScanEnabled) scanCurrentTab(ctx.tabId);
     }
   });
 

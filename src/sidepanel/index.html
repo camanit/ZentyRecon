@@ -64,9 +64,71 @@
 
     <!-- Status Bar -->
     <footer id="zr-status">
-      <span id="status-text">Ready</span>
-      <span id="status-version">v0.1.0</span>
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span id="status-text">Ready</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span id="status-shortcut" class="shortcut-pill" title="Shortcut to toggle Side Panel">Ctrl+Shift+Y</span>
+        <span id="status-version">v0.1.0</span>
+      </div>
     </footer>
+
+    <!-- Settings & Community Modal -->
+    <div id="settings-modal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>⚙️ Preferences & Guide</h3>
+          <button id="modal-close" class="icon-btn" title="Close">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="setting-group">
+            <div class="setting-label">Interface & Density</div>
+            <div class="setting-row">
+              <span>Compact Mode</span>
+              <label class="switch">
+                <input type="checkbox" id="pref-compact">
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="setting-row">
+              <span>Font Size</span>
+              <select id="pref-fontsize" class="select-input">
+                <option value="12px">Compact (12px)</option>
+                <option value="13px" selected>Normal (13px)</option>
+                <option value="14px">Large (14px)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <div class="setting-label">Scanner Behavior</div>
+            <div class="setting-row">
+              <span>Auto-scan on tab switch</span>
+              <label class="switch">
+                <input type="checkbox" id="pref-autoscan" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <div class="setting-label">📖 Panduan Komunitas & Store</div>
+            <p class="setting-desc">Cara uji coba ekstensi lokal (Developer Mode):</p>
+            <ol class="setting-steps">
+              <li>Buka <span class="mono">chrome://extensions</span> di Chrome/Brave/Edge.</li>
+              <li>Aktifkan toggle <strong>Developer mode</strong> di kanan atas.</li>
+              <li>Klik <strong>Load unpacked</strong> lalu pilih folder <span class="mono">dist/</span>.</li>
+              <li>Gunakan tombol <kbd>Ctrl+Shift+Y</kbd> (<kbd>Cmd+Shift+Y</kbd>) untuk membuka side panel.</li>
+            </ol>
+            <div class="setting-links">
+              <a href="https://github.com/camanit/ZentyRecon" target="_blank" class="setting-link">⭐ GitHub Community</a>
+              <a href="https://zentyrecon.ctar.tech/privacy" target="_blank" class="setting-link">Privacy Policy</a>
+              <a href="https://zentyrecon.ctar.tech/terms" target="_blank" class="setting-link">Terms of Service</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script type="module" src="./sidepanel.ts"></script>
