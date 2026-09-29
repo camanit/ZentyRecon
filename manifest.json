@@ -75,5 +75,12 @@
       },
       "description": "Open ZentyRecon Side Panel"
     }
+  },
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "zentyrecon@ctar.tech",
+      "strict_min_version": "115.0"
+    }
   }
 }
