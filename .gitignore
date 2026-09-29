@@ -1,0 +1,112 @@
+# ================================================
+# ZentyRecon Extension — .gitignore
+# JANGAN HAPUS FILE INI — Melindungi secret & data sensitif
+# ================================================
+
+# -----------------------------------------------
+# 📄 DOKUMEN PERENCANAAN — Hanya untuk internal, jangan di-push
+# -----------------------------------------------
+Zentyrecon.md
+zentyrecon.md
+ROADMAP.md
+roadmap.md
+*.roadmap.md
+CATATAN*.md
+catatan*.md
+*_notes.md
+*_internal.md
+docs/internal/
+
+# -----------------------------------------------
+# 🔑 API KEYS, CREDENTIALS & SECRETS
+# -----------------------------------------------
+.env
+.env.*
+!.env.example
+secrets/
+src/config/api-keys.ts
+src/config/secrets.ts
+src/config/credentials.ts
+native-host/config/credentials.json
+gplay-api.config.json
+zentyquetry.config.json
+*.secret
+*.secrets
+
+# -----------------------------------------------
+# 🛡️ LICENSE FILES — Machine-specific, jangan di-push!
+# -----------------------------------------------
+*.lic
+*.license
+license.key
+license.dat
+activation.dat
+.activation-token
+.zentyrecon-machine-id
+licenses/active/
+.license_history.json
+
+# -----------------------------------------------
+# 🔐 PRIVATE KEYS & CERTIFICATES
+# -----------------------------------------------
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.der
+certs/
+keys/
+private/
+
+# -----------------------------------------------
+# 📦 BUILD OUTPUT
+# -----------------------------------------------
+dist/
+build/
+*.crx
+*.xpi
+*.zip
+!examples/*.zip
+
+# -----------------------------------------------
+# 🦀 RUST BUILD
+# -----------------------------------------------
+target/
+Cargo.lock
+
+# -----------------------------------------------
+# 📦 NODE / JS
+# -----------------------------------------------
+node_modules/
+.npm
+.pnpm-store/
+*.tgz
+
+# -----------------------------------------------
+# 🐍 PYTHON (native host scripts)
+# -----------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# -----------------------------------------------
+# 🖥️ OS & IDE
+# -----------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/settings.json
+.idea/
+*.suo
+*.user
+
+# -----------------------------------------------
+# 📝 LOGS & TEMP
+# -----------------------------------------------
+*.log
+*.tmp
+.cache/
+scratch/
