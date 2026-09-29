@@ -1,0 +1,9 @@
+{
+  "name": "com.ctar.zentyquetry.host",
+  "description": "ZentyRecon to ZentyQuetry Sovereign Desktop Native Messaging Bridge",
+  "path": "zentyquetry-host.bat",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://*/"
+  ]
+}

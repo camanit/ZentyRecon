@@ -12,6 +12,7 @@ import {
   queryCertificateTransparency,
   type CtSubdomain,
 } from '@/utils/security-audit';
+import { pushCbomToGPlay, forwardCbomToDesktop } from '@/utils/ecosystem-client';
 
 export const PqcAnalyzerModule = {
   container: null as HTMLElement | null,
@@ -21,6 +22,7 @@ export const PqcAnalyzerModule = {
   ctSubdomains: [] as CtSubdomain[],
   isScanningCt: false,
   activeSubView: 'pqc' as 'pqc' | 'csp' | 'ct',
+  syncStatus: '' as string,
 
   mount(el: HTMLElement): void {
     this.container = el;
@@ -251,8 +253,16 @@ export const PqcAnalyzerModule = {
       <div class="zr-card">
         <div class="card-header">
           <span class="card-title">NIST Post-Quantum Standards</span>
-          <button id="btn-export-cbom" class="copy-btn" title="Export Cryptographic Bill of Materials">CBOM Export</button>
+          <div style="display: flex; gap: 4px;">
+            <button id="btn-export-cbom" class="copy-btn" title="Export Cryptographic Bill of Materials">CBOM Export</button>
+            <button id="btn-sync-gplay" class="copy-btn" style="color: #06b6d4;" title="Sync to GPlay AI DataBank & Desktop">☁️ Sync</button>
+          </div>
         </div>
+        ${this.syncStatus ? `
+          <div style="margin-top: 6px; padding: 5px 8px; border-radius: 6px; background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.3); font-size: 10px; color: #38bdf8;">
+            ${this.syncStatus}
+          </div>
+        ` : ''}
         <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 6px;">
           <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; background: rgba(255,255,255,0.02); border-radius: 6px;">
             <div>
@@ -404,6 +414,23 @@ export const PqcAnalyzerModule = {
       this.ctSubdomains = await queryCertificateTransparency(this.currentDomain);
       this.isScanningCt = false;
       this.render();
+    });
+
+    this.container.querySelector('#btn-sync-gplay')?.addEventListener('click', async () => {
+      this.syncStatus = '⏳ Syncing CBOM with GPlay & Desktop...';
+      this.render();
+
+      const cbom = this.generateCbom();
+      const gplayResult = await pushCbomToGPlay(cbom);
+      const desktopResult = await forwardCbomToDesktop(cbom, this.currentDomain);
+
+      this.syncStatus = `✓ GPlay: ${gplayResult.message} | Desktop: ${desktopResult.message}`;
+      this.render();
+
+      setTimeout(() => {
+        this.syncStatus = '';
+        this.render();
+      }, 5000);
     });
   },
 };
