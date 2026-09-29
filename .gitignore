@@ -16,6 +16,8 @@ catatan*.md
 *_notes.md
 *_internal.md
 docs/internal/
+integrations/
+native-host/
 
 # -----------------------------------------------
 # 🔑 API KEYS, CREDENTIALS & SECRETS
@@ -34,7 +36,7 @@ zentyquetry.config.json
 *.secrets
 
 # -----------------------------------------------
-# 🛡️ LICENSE FILES — Machine-specific, jangan di-push!
+# 🛡️ LICENSE FILES & TOOLS — Machine-specific, jangan di-push!
 # -----------------------------------------------
 *.lic
 *.license
@@ -45,6 +47,10 @@ activation.dat
 .zentyrecon-machine-id
 licenses/active/
 .license_history.json
+tools/
+generate-license.bat
+license_generator.py
+license_engine.py
 
 # -----------------------------------------------
 # 🔐 PRIVATE KEYS & CERTIFICATES
