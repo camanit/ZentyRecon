@@ -384,3 +384,27 @@ code, .mono { font-family: 'JetBrains Mono', monospace; }
   transition: all 0.2s;
 }
 .copy-btn:hover { background: rgba(139,92,246,0.1); color: #a78bfa; }
+
+/* ── CATEGORY PILLS ── */
+.cat-pill {
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.cat-pill:hover {
+  background: rgba(139, 92, 246, 0.15);
+  color: var(--text);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+.cat-pill.active {
+  background: rgba(139, 92, 246, 0.25);
+  color: #a78bfa;
+  border-color: #8b5cf6;
+}
