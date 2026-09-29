@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZentyRecon - All-in-One PQC Security Recon Browser Extension</title>
+<meta name="description" content="Replace 7 browser extensions with one unified Side Panel. Real-time Post-Quantum Cryptography detection, tech stack analysis, proxy management and more.">
+<meta property="og:title" content="ZentyRecon - PQC Security Recon Suite">
+<meta property="og:description" content="All-in-One Browser Extension for Post-Quantum Cryptography recon. Part of the ZentyQuetry ecosystem by CTAR.tech">
+<meta property="og:url" content="https://zentyrecon.ctar.tech">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#020817;--bg-2:#0f172a;--border:rgba(255,255,255,0.07);--purple:#8b5cf6;--violet:#7c3aed;--pink:#ec4899;--green:#10b981;--text:#f1f5f9;--muted:#94a3b8;--card:rgba(15,23,42,0.8)}
+html{scroll-behavior:smooth}body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg-2)}::-webkit-scrollbar-thumb{background:var(--purple);border-radius:4px}
+.glass{background:var(--card);backdrop-filter:blur(16px);border:1px solid var(--border)}
+.grad{background:linear-gradient(135deg,#a78bfa,#ec4899,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.container{max-width:1200px;margin:0 auto;padding:0 1.5rem}section{padding:5rem 0}
+.grid-bg{position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(139,92,246,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(139,92,246,0.03) 1px,transparent 1px);background-size:40px 40px}
+.orb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0}
+.orb-1{width:500px;height:500px;background:rgba(139,92,246,0.12);top:-100px;right:-100px;animation:float1 8s ease-in-out infinite}
+.orb-2{width:400px;height:400px;background:rgba(6,182,212,0.08);bottom:10%;left:-100px;animation:float2 10s ease-in-out infinite}
+@keyframes float1{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,30px)}}
+@keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,-20px)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes fadein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scan{0%{transform:translateY(-100%)}100%{transform:translateY(200%)}}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(2,8,23,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;max-width:1200px;margin:0 auto}
+.nav-logo{display:flex;align-items:center;gap:.75rem;text-decoration:none}
+.nav-logo-icon{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#ec4899);display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:.9rem;box-shadow:0 0 20px rgba(124,58,237,0.4)}
+.nav-logo-text{font-weight:800;font-size:1.1rem;color:var(--text)}
+.nav-logo-sub{font-size:.65rem;color:var(--purple);font-weight:600;letter-spacing:.05em}
+.nav-links{display:flex;align-items:center;gap:2rem}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{padding:.5rem 1.25rem;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#ec4899);color:#fff;font-weight:700;font-size:.875rem;text-decoration:none;box-shadow:0 0 20px rgba(124,58,237,0.3)}
+.hero{position:relative;z-index:1;padding:8rem 0 5rem;text-align:center}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.35rem 1rem;border-radius:100px;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);font-size:.75rem;font-weight:700;color:#a78bfa;letter-spacing:.05em;margin-bottom:1.5rem;animation:fadein .6s ease}
+.hero-badge span{width:6px;height:6px;border-radius:50%;background:#a78bfa;animation:pulse 2s infinite}
+.hero h1{font-size:clamp(2.5rem,6vw,4.5rem);font-weight:900;line-height:1.1;margin-bottom:1.5rem;animation:fadein .6s .1s ease both}
+.hero p{font-size:1.1rem;color:var(--muted);max-width:640px;margin:0 auto 2.5rem;line-height:1.7;animation:fadein .6s .2s ease both}
+.hero-btns{display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap;margin-bottom:3rem;animation:fadein .6s .3s ease both}
+.btn-primary{padding:.875rem 2rem;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#ec4899);color:#fff;font-weight:700;font-size:.95rem;text-decoration:none;transition:all .2s;box-shadow:0 4px 24px rgba(124,58,237,0.35);display:inline-block}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(124,58,237,0.5)}
+.btn-secondary{padding:.875rem 2rem;border-radius:12px;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);font-weight:700;font-size:.95rem;text-decoration:none;transition:all .2s;display:inline-block}
+.btn-secondary:hover{background:rgba(255,255,255,0.08);transform:translateY(-2px)}
+.browser-mockup{max-width:860px;margin:0 auto;border-radius:16px;overflow:hidden;border:1px solid rgba(139,92,246,0.3);box-shadow:0 0 60px rgba(139,92,246,0.15),0 40px 80px rgba(0,0,0,0.5);animation:fadein .8s .4s ease both}
+.browser-bar{background:#1e293b;padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem;border-bottom:1px solid var(--border)}
+.browser-dots{display:flex;gap:.4rem}
+.browser-dots span{width:12px;height:12px;border-radius:50%}
+.dot-r{background:#ef4444}.dot-y{background:#f59e0b}.dot-g{background:#10b981}
+.browser-url{flex:1;background:rgba(0,0,0,0.3);border-radius:6px;padding:.3rem .75rem;font-size:.75rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.browser-body{background:var(--bg-2);display:grid;grid-template-columns:1fr 280px;min-height:360px}
+.browser-page{padding:1.5rem;position:relative;overflow:hidden}
+.page-favicon{width:20px;height:20px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);border-radius:4px;display:inline-block}
+.page-domain{font-size:.75rem;color:var(--muted);margin-left:.5rem}
+.page-block{height:8px;background:rgba(255,255,255,0.05);border-radius:4px;margin-bottom:.5rem}
+.scan-overlay{position:absolute;inset:0;background:linear-gradient(transparent 0%,rgba(139,92,246,0.06) 50%,transparent 100%);animation:scan 2.5s ease-in-out infinite}
+.side-panel{background:#0a1628;border-left:1px solid rgba(139,92,246,0.2);display:flex;flex-direction:column}
+.panel-header{padding:.75rem 1rem;background:linear-gradient(135deg,rgba(124,58,237,0.2),rgba(236,72,153,0.1));border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem}
+.panel-logo{font-weight:800;font-size:.8rem;color:var(--text)}
+.panel-badge{font-size:.55rem;background:rgba(139,92,246,0.2);color:#a78bfa;padding:2px 6px;border-radius:4px;font-weight:700}
+.panel-tabs{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border)}
+.panel-tab{padding:.4rem;text-align:center;font-size:.55rem;color:var(--muted);border-right:1px solid var(--border)}
+.panel-tab.active{color:#a78bfa;background:rgba(139,92,246,0.08)}
+.panel-tab:last-child{border-right:none}
+.panel-content{flex:1;padding:.75rem;display:flex;flex-direction:column;gap:.5rem}
+.panel-item{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:6px;padding:.5rem .6rem}
+.panel-item-name{font-size:.6rem;font-weight:600;color:var(--text)}
+.panel-item-val{font-size:.55rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.pqc-score{margin-top:auto;padding:.6rem;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:6px}
+.pqc-label{font-size:.55rem;color:var(--muted);margin-bottom:.3rem}
+.pqc-bar-bg{height:4px;background:rgba(255,255,255,0.05);border-radius:2px}
+.pqc-bar{height:4px;width:68%;background:linear-gradient(90deg,#10b981,#06b6d4);border-radius:2px}
+.pqc-val{font-size:.6rem;color:#10b981;font-weight:700;margin-top:.25rem}
+.stats{display:flex;align-items:center;justify-content:center;gap:3rem;flex-wrap:wrap;position:relative;z-index:1}
+.stat-item{text-align:center}
+.stat-num{font-size:2rem;font-weight:900;line-height:1}
+.stat-lbl{font-size:.75rem;color:var(--muted);font-weight:500;margin-top:.25rem}
+.stat-div{width:1px;height:40px;background:var(--border)}
+.section-label{text-align:center;margin-bottom:4rem}
+.section-badge{display:inline-block;padding:.25rem .875rem;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.2);border-radius:100px;font-size:.7rem;font-weight:700;color:#a78bfa;letter-spacing:.1em;margin-bottom:1rem}
+.section-label h2{font-size:clamp(1.75rem,4vw,2.5rem);font-weight:800;margin-bottom:1rem}
+.section-label p{color:var(--muted);max-width:560px;margin:0 auto;line-height:1.6}
+.modules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.25rem;position:relative;z-index:1}
+.module-card{border-radius:16px;padding:1.5rem;transition:all .3s}
+.module-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,0.3);border-color:rgba(139,92,246,0.3)}
+.module-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:1rem;font-weight:700;color:#a78bfa}
+.module-title{font-weight:700;font-size:1rem;margin-bottom:.5rem}
+.module-desc{font-size:.85rem;color:var(--muted);line-height:1.6;margin-bottom:1rem}
+.module-badge{display:inline-block;font-size:.65rem;font-weight:700;padding:.2rem .6rem;border-radius:4px}
+.badge-free{background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.2)}
+.badge-pro{background:rgba(139,92,246,0.1);color:#a78bfa;border:1px solid rgba(139,92,246,0.2)}
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;position:relative;z-index:1}
+.pricing-card{border-radius:20px;padding:2rem;position:relative;transition:transform .3s}
+.pricing-card:hover{transform:translateY(-4px)}
+.pricing-card.featured{border-color:rgba(139,92,246,0.4)!important;box-shadow:0 0 40px rgba(139,92,246,0.12)}
+.pricing-tag{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#7c3aed,#ec4899);padding:.25rem 1rem;border-radius:100px;font-size:.7rem;font-weight:700;color:#fff;white-space:nowrap}
+.pricing-tier{font-size:.75rem;font-weight:700;color:var(--purple);letter-spacing:.1em;margin-bottom:.5rem}
+.pricing-price{font-size:2.5rem;font-weight:900;line-height:1;margin-bottom:.25rem}
+.pricing-period{font-size:.8rem;color:var(--muted)}
+.pricing-desc{color:var(--muted);font-size:.85rem;margin:1rem 0 1.5rem;line-height:1.5}
+.pricing-features{list-style:none;display:flex;flex-direction:column;gap:.6rem;margin-bottom:1.5rem}
+.pricing-features li{display:flex;align-items:flex-start;gap:.6rem;font-size:.85rem;color:var(--muted)}
+.pricing-features li span:first-child{flex-shrink:0;margin-top:1px}
+.check{color:#10b981}.cross{color:#ef4444}
+.pricing-btn{display:block;text-align:center;padding:.75rem;border-radius:10px;font-weight:700;font-size:.875rem;text-decoration:none;transition:all .2s}
+.pricing-btn-outline{border:1px solid var(--border);color:var(--text);background:transparent}
+.pricing-btn-outline:hover{border-color:var(--purple);color:#a78bfa}
+.pricing-btn-fill{background:linear-gradient(135deg,#7c3aed,#ec4899);color:#fff}
+.pricing-btn-fill:hover{opacity:.9;transform:translateY(-1px)}
+.pricing-btn-ghost{border:1px solid rgba(139,92,246,0.3);color:#a78bfa;background:rgba(139,92,246,0.05)}
+.pricing-btn-ghost:hover{background:rgba(139,92,246,0.1)}
+.ecosystem-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;position:relative;z-index:1}
+.eco-card{border-radius:14px;padding:1.25rem;transition:all .3s}
+.eco-card:hover{border-color:rgba(139,92,246,0.3);transform:translateY(-2px)}
+.eco-icon{font-size:2rem;margin-bottom:.75rem}
+.eco-title{font-weight:700;font-size:.9rem;margin-bottom:.35rem}
+.eco-desc{font-size:.78rem;color:var(--muted);line-height:1.5}
+.eco-link{font-size:.75rem;color:#a78bfa;margin-top:.5rem;display:block;text-decoration:none}
+.eco-link:hover{text-decoration:underline}
+.waitlist-section{position:relative;z-index:1}
+.waitlist-card{border-radius:24px;padding:3.5rem;background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(236,72,153,0.08));border:1px solid rgba(139,92,246,0.2);text-align:center}
+.waitlist-card h2{font-size:2rem;font-weight:800;margin-bottom:.75rem}
+.waitlist-card p{color:var(--muted);margin-bottom:2rem;max-width:480px;margin-left:auto;margin-right:auto}
+.waitlist-form{display:flex;gap:.75rem;max-width:440px;margin:0 auto;flex-wrap:wrap;justify-content:center}
+.waitlist-input{flex:1;min-width:200px;padding:.75rem 1rem;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.9rem;outline:none;transition:border-color .2s;font-family:'Plus Jakarta Sans',sans-serif}
+.waitlist-input:focus{border-color:var(--purple)}
+.waitlist-input::placeholder{color:var(--muted)}
+.waitlist-submit{padding:.75rem 1.5rem;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#ec4899);color:#fff;font-weight:700;font-size:.9rem;border:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 4px 16px rgba(124,58,237,0.3)}
+.waitlist-submit:hover{transform:translateY(-1px);opacity:.9}
+.waitlist-note{font-size:.75rem;color:var(--muted);margin-top:.75rem}
+footer{border-top:1px solid var(--border);padding:2.5rem 1.5rem;position:relative;z-index:1}
+.footer-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.5rem}
+.footer-brand{font-size:.85rem;color:var(--muted)}
+.footer-brand strong{color:var(--text)}
+.footer-links{display:flex;gap:1.5rem}
+.footer-links a{color:var(--muted);font-size:.82rem;text-decoration:none;transition:color .2s}
+.footer-links a:hover{color:var(--text)}
+.divider{border:none;border-top:1px solid var(--border);margin:0}
+@media(max-width:768px){.nav-links{display:none}.browser-body{grid-template-columns:1fr}.side-panel{display:none}.stats{gap:1.5rem}.stat-div{display:none}.waitlist-card{padding:2rem 1.25rem}.footer-inner{flex-direction:column;text-align:center}}</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">
+      <div class="nav-logo-icon">ZR</div>
+      <div>
+        <div class="nav-logo-text">ZentyRecon</div>
+        <div class="nav-logo-sub">BY ZENTYQUETRY &middot; CTAR.TECH</div>
+      </div>
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#ecosystem">Ecosystem</a>
+      <a href="https://github.com/camanit/ZentyRecon" target="_blank">GitHub</a>
+    </div>
+    <a href="#waitlist" class="nav-cta">&#9889; Early Access</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge"><span></span>COMING SOON &mdash; BROWSER EXTENSION</div>
+    <h1>One Extension.<br><span class="grad">Zero Quantum Blindspots.</span></h1>
+    <p>Replace 7 browser extensions with a single unified Side Panel. Real-time Post-Quantum Cryptography detection, tech stack fingerprinting, proxy management, and Mosca risk simulation &mdash; all in one place.</p>
+    <div class="hero-btns">
+      <a href="#waitlist" class="btn-primary">&#9889; Get Early Access</a>
+      <a href="https://github.com/camanit/ZentyRecon" target="_blank" class="btn-secondary">&#11088; Star on GitHub</a>
+    </div>
+    <div class="browser-mockup">
+      <div class="browser-bar">
+        <div class="browser-dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+        <div class="browser-url">&#128274; https://target-site.com &mdash; PQC Score: 68/100 &#129000; Scanning...</div>
+      </div>
+      <div class="browser-body">
+        <div class="browser-page">
+          <div style="display:flex;align-items:center;margin-bottom:1rem">
+            <div class="page-favicon"></div>
+            <span class="page-domain">target-site.com</span>
+          </div>
+          <div>
+            <div class="page-block" style="height:12px;width:40%;background:rgba(255,255,255,0.08)"></div>
+            <div class="page-block"></div><div class="page-block" style="width:80%"></div>
+            <div class="page-block" style="width:60%"></div><div class="page-block"></div>
+            <div class="page-block" style="width:75%"></div><div class="page-block" style="width:45%"></div>
+          </div>
+          <div class="scan-overlay"></div>
+        </div>
+        <div class="side-panel">
+          <div class="panel-header">
+            <span>&#128737;</span>
+            <div><div class="panel-logo">ZentyRecon</div><div class="panel-badge">PRO</div></div>
+          </div>
+          <div class="panel-tabs">
+            <div class="panel-tab active">Tech</div>
+            <div class="panel-tab">Proxy</div>
+            <div class="panel-tab">Links</div>
+            <div class="panel-tab">PQC</div>
+          </div>
+          <div class="panel-content">
+            <div class="panel-item"><div class="panel-item-name">TLS Cipher</div><div class="panel-item-val">TLS_AES_256_GCM_SHA384</div></div>
+            <div class="panel-item"><div class="panel-item-name">Key Exchange</div><div class="panel-item-val" style="color:#f59e0b">RSA-2048 &#9888; Legacy</div></div>
+            <div class="panel-item"><div class="panel-item-name">Framework</div><div class="panel-item-val">Next.js 14.2.3</div></div>
+            <div class="panel-item"><div class="panel-item-name">Session Cookies</div><div class="panel-item-val">4 found &middot; 2 HttpOnly</div></div>
+            <div class="pqc-score">
+              <div class="pqc-label">PQC Readiness Score</div>
+              <div class="pqc-bar-bg"><div class="pqc-bar"></div></div>
+              <div class="pqc-val">68/100 &mdash; Hybrid Partial</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div style="position:relative;z-index:1;padding:1rem 0 4rem">
+  <div class="container">
+    <div class="stats">
+      <div class="stat-item"><div class="stat-num grad">7</div><div class="stat-lbl">Extensions Replaced</div></div>
+      <div class="stat-div"></div>
+      <div class="stat-item"><div class="stat-num grad">4</div><div class="stat-lbl">Browsers Supported</div></div>
+      <div class="stat-div"></div>
+      <div class="stat-item"><div class="stat-num grad">&lt;50MB</div><div class="stat-lbl">RAM Usage</div></div>
+      <div class="stat-div"></div>
+      <div class="stat-item"><div class="stat-num grad">MV3</div><div class="stat-lbl">Manifest Version</div></div>
+      <div class="stat-div"></div>
+      <div class="stat-item"><div class="stat-num grad">FIPS</div><div class="stat-lbl">PQC Standard</div></div>
+    </div>
+  </div>
+</div>
+<hr class="divider">
+
+<section id="features">
+  <div class="container">
+    <div class="section-label">
+      <div class="section-badge">CORE MODULES</div>
+      <h2>7 Tools. <span class="grad">One Panel.</span></h2>
+      <p>Every module purpose-built for security recon, unified inside a single browser Side Panel.</p>
+    </div>
+    <div class="modules-grid">
+      <div class="module-card glass"><div class="module-icon" style="background:rgba(139,92,246,0.1)">&#128269;</div><div class="module-title">Tech Stack &amp; Crypto Detector</div><div class="module-desc">Identifies 500+ web technologies and maps the cryptographic attack surface. Detects RSA, ECC, and PQC Hybrid cipher usage in real-time from TLS handshakes and HTTP headers.</div><span class="module-badge badge-free">&#10003; Community</span></div>
+      <div class="module-card glass"><div class="module-icon" style="background:rgba(6,182,212,0.1)">&#128279;</div><div class="module-title">DOM &amp; Endpoint Extractor</div><div class="module-desc">Extracts all links, API endpoints, forms, and script references from DOM. Categorizes internal vs external assets and detects potential injection vectors.</div><span class="module-badge badge-free">&#10003; Community</span></div>
+      <div class="module-card glass"><div class="module-icon" style="background:rgba(236,72,153,0.1)">&#127850;</div><div class="module-title">Session &amp; Cookie Manager</div><div class="module-desc">Full CRUD on browser cookies per domain. Read, modify, delete, import, and export session data. Filter by HttpOnly, Secure, SameSite flags for security analysis.</div><span class="module-badge badge-free">&#10003; Community</span></div>
+      <div class="module-card glass"><div class="module-icon" style="background:rgba(245,158,11,0.1)">&#127760;</div><div class="module-title">Dynamic Proxy Manager</div><div class="module-desc">Switch between HTTP, HTTPS, SOCKS4/5 proxy profiles in one click. Pattern-based routing per URL. Natively connects to ZentyQuetry PQC Hybrid Reverse Proxy.</div><span class="module-badge badge-free">&#10003; Community (3 profiles)</span></div>
+      <div class="module-card glass"><div class="module-icon" style="background:rgba(16,185,129,0.1)">&#128736;</div><div class="module-title">Security Utilities Suite</div><div class="module-desc">All-in-one toolkit: Base64/Hex/URL encoder-decoder, SHA-256/512 hash generator, JWT parser, XSS payload library, and reverse shell payload generator.</div><span class="module-badge badge-free">&#10003; Community</span></div>
+      <div class="module-card glass"><div class="module-icon" style="background:rgba(239,68,68,0.1)">&#9883;</div><div class="module-title">PQC Readiness Analyzer</div><div class="module-desc">Scans TLS handshakes to classify ciphers as Classical, Hybrid-PQC, or Full-PQC. Assigns 0&ndash;100 PQC Readiness Score per domain with remediation hints.</div><span class="module-badge badge-pro">&#9733; Pro Feature</span></div>
+      <div class="module-card glass"><div class="module-icon" style="background:rgba(139,92,246,0.15)">&#129518;</div><div class="module-title">Mosca Theorem Calculator</div><div class="module-desc">Real-time Store-Now-Decrypt-Later risk calculator. Input Y + X &gt; Z for instant quantum risk verdict and migration urgency assessment.</div><span class="module-badge badge-free">&#10003; Community</span></div>
+    </div>
+  </div>
+</section>
+<hr class="divider">
+
+<section id="pricing">
+  <div class="container">
+    <div class="section-label">
+      <div class="section-badge">PLANS &amp; PRICING</div>
+      <h2>Start Free. <span class="grad">Scale Securely.</span></h2>
+      <p>Community Edition is free forever and open source. Upgrade to Pro or Enterprise for full CBOM analysis and ZentyQuetry integration.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="pricing-card glass">
+        <div class="pricing-tier">COMMUNITY EDITION</div>
+        <div class="pricing-price">Free</div>
+        <div class="pricing-period">Forever &mdash; GPL v3 Open Source</div>
+        <div class="pricing-desc">For individual pentesters, security researchers, and CTF enthusiasts.</div>
+        <ul class="pricing-features">
+          <li><span class="check">&#10003;</span><span>Tech Stack &amp; Crypto Detector</span></li>
+          <li><span class="check">&#10003;</span><span>DOM &amp; Endpoint Extractor</span></li>
+          <li><span class="check">&#10003;</span><span>Cookie Manager (basic)</span></li>
+          <li><span class="check">&#10003;</span><span>Proxy Manager (3 profiles)</span></li>
+          <li><span class="check">&#10003;</span><span>Mosca Theorem Calculator</span></li>
+          <li><span class="cross">&#10007;</span><span style="opacity:.5">CBOM Export (CycloneDX/SPDX)</span></li>
+          <li><span class="cross">&#10007;</span><span style="opacity:.5">Cloud Sync to GPlay DataBank</span></li>
+          <li><span class="cross">&#10007;</span><span style="opacity:.5">ZentyQuetry Desktop Integration</span></li>
+        </ul>
+        <a href="https://github.com/camanit/ZentyRecon" class="pricing-btn pricing-btn-outline" target="_blank">&#11015; View on GitHub</a>
+      </div>
+      <div class="pricing-card glass featured">
+        <div class="pricing-tag">&#128293; Most Popular</div>
+        <div class="pricing-tier">PRO EDITION</div>
+        <div class="pricing-price">$9</div>
+        <div class="pricing-period">per month &middot; billed annually</div>
+        <div class="pricing-desc">For professional red teamers and security engineers who need full CBOM analysis and cloud sync.</div>
+        <ul class="pricing-features">
+          <li><span class="check">&#10003;</span><span>Everything in Community</span></li>
+          <li><span class="check">&#10003;</span><span>Full PQC Score + scan history</span></li>
+          <li><span class="check">&#10003;</span><span>CBOM Export (CycloneDX / SPDX)</span></li>
+          <li><span class="check">&#10003;</span><span>Cloud Sync &rarr; GPlay AI DataBank</span></li>
+          <li><span class="check">&#10003;</span><span>ZentyQuetry Desktop Integration</span></li>
+          <li><span class="check">&#10003;</span><span>CSP &amp; CT Log Analyzer</span></li>
+          <li><span class="check">&#10003;</span><span>Unlimited Proxy Profiles</span></li>
+          <li><span class="check">&#10003;</span><span>Machine-bound License (1 PC)</span></li>
+        </ul>
+        <a href="#waitlist" class="pricing-btn pricing-btn-fill">&#9889; Early Access &mdash; 3 Months Free</a>
+      </div>
+      <div class="pricing-card glass">
+        <div class="pricing-tier">ENTERPRISE SOVEREIGN</div>
+        <div class="pricing-price" style="font-size:1.75rem">Custom</div>
+        <div class="pricing-period">Contact for pricing</div>
+        <div class="pricing-desc">For SOC teams, banks, defense agencies, and air-gapped critical infrastructure operators.</div>
+        <ul class="pricing-features">
+          <li><span class="check">&#10003;</span><span>Everything in Pro</span></li>
+          <li><span class="check">&#10003;</span><span>Multi-seat / Team License</span></li>
+          <li><span class="check">&#10003;</span><span>SOC / SIEM Direct Integration</span></li>
+          <li><span class="check">&#10003;</span><span>Air-gapped Offline Mode</span></li>
+          <li><span class="check">&#10003;</span><span>Superadmin License Management</span></li>
+          <li><span class="check">&#10003;</span><span>Dedicated Onboarding &amp; 24/7 SLA</span></li>
+        </ul>
+        <a href="mailto:license@ctar.tech" class="pricing-btn pricing-btn-ghost">&#128231; Contact Sales</a>
+      </div>
+    </div>
+  </div>
+</section>
+<hr class="divider">
+
+<section id="ecosystem">
+  <div class="container">
+    <div class="section-label">
+      <div class="section-badge">ECOSYSTEM</div>
+      <h2>Part of the <span class="grad">ZentyQuetry</span> Universe</h2>
+      <p>ZentyRecon is the browser-native recon agent of the ZentyQuetry post-quantum security ecosystem, connected to the same AI DataBank and Desktop engine.</p>
+    </div>
+    <div class="ecosystem-grid">
+      <div class="eco-card glass"><div class="eco-icon">&#128421;</div><div class="eco-title">ZentyQuetry Desktop</div><div class="eco-desc">Enterprise PQC compliance platform. Receives ZentyRecon scan results via Native Messaging for deep CBOM analysis and automated PQC migration.</div><a href="https://zentyquetry.ctar.tech" class="eco-link" target="_blank">zentyquetry.ctar.tech &rarr;</a></div>
+      <div class="eco-card glass"><div class="eco-icon">&#9729;</div><div class="eco-title">GPlay AI DataBank</div><div class="eco-desc">Central AI engine with 118 API endpoints. ZentyRecon Pro pushes CBOM scan data and receives AI-generated remediation patterns in real-time.</div><a href="https://gplay.ctar.tech" class="eco-link" target="_blank">gplay.ctar.tech &rarr;</a></div>
+      <div class="eco-card glass" style="border-color:rgba(139,92,246,0.25)"><div class="eco-icon">&#128737;</div><div class="eco-title">ZentyRecon Extension</div><div class="eco-desc">YOU ARE HERE &mdash; The browser-native recon frontend. Lightweight agent that feeds intelligence into the ZentyQuetry ecosystem from any webpage.</div><a href="https://github.com/camanit/ZentyRecon" class="eco-link" target="_blank">github.com/camanit/ZentyRecon &rarr;</a></div>
+      <div class="eco-card glass"><div class="eco-icon">&#128274;</div><div class="eco-title">ZentyInfoSec / SOC</div><div class="eco-desc">Enterprise SIEM and SOC integration layer. ZentyRecon Enterprise feeds threat intel and CBOM findings directly into the SOC KPI dashboard.</div><a href="https://ctar.tech" class="eco-link" target="_blank">ctar.tech &rarr;</a></div>
+    </div>
+  </div>
+</section>
+<hr class="divider">
+
+<section id="waitlist" class="waitlist-section">
+  <div class="container">
+    <div class="waitlist-card">
+      <div class="hero-badge" style="margin-bottom:1.25rem"><span></span>EARLY ACCESS &mdash; LIMITED SPOTS</div>
+      <h2>Be the First to <span class="grad">Recon the Quantum Era.</span></h2>
+      <p>Join the waitlist and get notified when ZentyRecon launches on Chrome Web Store. Early access members get <strong>3 months Pro free</strong>.</p>
+      <form class="waitlist-form" onsubmit="handleWaitlist(event)">
+        <input type="email" class="waitlist-input" id="email-input" placeholder="your@email.com" required>
+        <button type="submit" class="waitlist-submit">&#9889; Join Waitlist</button>
+      </form>
+      <div class="waitlist-note" id="waitlist-msg">&#128274; No spam. Unsubscribe anytime. Your data stays private.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <strong>ZentyRecon</strong> by <a href="https://ctar.tech" style="color:#a78bfa;text-decoration:none">CTAR.tech</a><br>
+      <span style="font-size:.75rem">Part of the ZentyQuetry PQC Ecosystem &middot; GPL v3 Community Edition</span>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/camanit/ZentyRecon" target="_blank">GitHub</a>
+      <a href="https://zentyquetry.ctar.tech" target="_blank">ZentyQuetry</a>
+      <a href="https://gplay.ctar.tech" target="_blank">GPlay API</a>
+      <a href="mailto:license@ctar.tech">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+function handleWaitlist(e) {
+  e.preventDefault();
+  var email = document.getElementById('email-input').value;
+  var msg = document.getElementById('waitlist-msg');
+  msg.style.color = '#10b981';
+  msg.textContent = 'Added: ' + email + ' - We will notify you at launch!';
+  document.getElementById('email-input').value = '';
+}
+var obs = new IntersectionObserver(function(entries) {
+  entries.forEach(function(el) {
+    if (el.isIntersecting) { el.target.style.opacity='1'; el.target.style.transform='translateY(0)'; }
+  });
+}, {threshold: 0.1});
+document.querySelectorAll('.module-card,.pricing-card,.eco-card').forEach(function(el) {
+  el.style.opacity='0'; el.style.transform='translateY(20px)';
+  el.style.transition='opacity 0.5s ease,transform 0.5s ease';
+  obs.observe(el);
+});
+</script>
+</body>
+</html>
