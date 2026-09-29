@@ -110,3 +110,10 @@ desktop.ini
 *.tmp
 .cache/
 scratch/
+
+# Gambar & screenshot lokal (internal planning)
+*.png
+*.jpg
+*.jpeg
+!public/icons/*.png
+!assets/*.png

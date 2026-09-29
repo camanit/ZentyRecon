@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZentyRecon</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./sidepanel.css">
+</head>
+<body>
+  <div id="zr-app">
+    <!-- Header -->
+    <header id="zr-header">
+      <div class="header-brand">
+        <div class="header-logo">ZR</div>
+        <div class="header-info">
+          <span class="header-name">ZentyRecon</span>
+          <span id="license-badge" class="badge badge-free">Community</span>
+        </div>
+      </div>
+      <div class="header-controls">
+        <button id="btn-refresh" class="icon-btn" title="Scan current page">↻</button>
+        <button id="btn-settings" class="icon-btn" title="Settings">⚙</button>
+      </div>
+    </header>
+
+    <!-- Current Tab Context -->
+    <div id="tab-context">
+      <div class="context-favicon" id="ctx-favicon"></div>
+      <div class="context-info">
+        <div class="context-domain" id="ctx-domain">—</div>
+        <div class="context-url" id="ctx-url">Open a webpage to start scanning</div>
+      </div>
+      <div id="pqc-pill" class="pqc-pill pqc-unknown">—/100</div>
+    </div>
+
+    <!-- Module Tabs -->
+    <nav id="module-tabs">
+      <button class="module-tab active" data-module="tech-detector"    title="Tech Stack">🔍</button>
+      <button class="module-tab"        data-module="dom-extractor"    title="DOM Extractor">🔗</button>
+      <button class="module-tab"        data-module="cookie-manager"   title="Cookies">🍪</button>
+      <button class="module-tab"        data-module="proxy-manager"    title="Proxy">🌐</button>
+      <button class="module-tab"        data-module="security-utils"   title="Utilities">🛠</button>
+      <button class="module-tab"        data-module="pqc-analyzer"     title="PQC Analyzer">⚛</button>
+      <button class="module-tab"        data-module="mosca-calc"       title="Mosca Calc">🧮</button>
+    </nav>
+
+    <!-- Module Tab Labels -->
+    <div id="module-label">
+      <span id="active-module-name">Tech Stack Detector</span>
+    </div>
+
+    <!-- Module Content Area -->
+    <main id="module-content">
+      <!-- Dynamically rendered by each module's TypeScript -->
+      <div id="module-tech-detector"  class="module-panel active"></div>
+      <div id="module-dom-extractor"  class="module-panel"></div>
+      <div id="module-cookie-manager" class="module-panel"></div>
+      <div id="module-proxy-manager"  class="module-panel"></div>
+      <div id="module-security-utils" class="module-panel"></div>
+      <div id="module-pqc-analyzer"   class="module-panel"></div>
+      <div id="module-mosca-calc"     class="module-panel"></div>
+    </main>
+
+    <!-- Status Bar -->
+    <footer id="zr-status">
+      <span id="status-text">Ready</span>
+      <span id="status-version">v0.1.0</span>
+    </footer>
+  </div>
+
+  <script type="module" src="./sidepanel.ts"></script>
+</body>
+</html>

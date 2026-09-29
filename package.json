@@ -1,0 +1,23 @@
+{
+  "name": "zentyrecon",
+  "version": "1.0.0",
+  "description": "> **Browser Extension** | Manifest V3 | Chrome · Edge · Firefox · Brave",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "type-check": "tsc --noEmit",
+    "preview": "vite preview"
+  },
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/camanit/ZentyRecon/issues"
+  },
+  "homepage": "https://github.com/camanit/ZentyRecon#readme",
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^2.0.0",
+    "@types/chrome": "^0.3.4",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1"
+  }
+}
