@@ -22,7 +22,8 @@ export type MessageType =
   | 'PQC_SCORE'
   | 'SIDEPANEL_OPEN'
   | 'TAB_CHANGED'
-  | 'MODULE_DATA';
+  | 'MODULE_DATA'
+  | 'GET_SECURITY_HEADERS';
 
 export interface ZRMessage {
   type: MessageType;

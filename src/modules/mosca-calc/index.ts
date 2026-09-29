@@ -3,6 +3,7 @@
 // ============================================================
 
 import type { MoscaResult } from '@/types';
+import { evaluateWasmMosca, initPqcWasm } from '@/utils/pqc-wasm';
 
 export const MoscaCalcModule = {
   container: null as HTMLElement | null,
@@ -10,9 +11,11 @@ export const MoscaCalcModule = {
   y: 7, // Shelf-life (years)
   z: 6, // Q-Day estimate (years)
   selectedPreset: 'custom' as 'custom' | 'finance' | 'health' | 'defense' | 'ecommerce',
+  wasmActive: false,
 
-  mount(el: HTMLElement): void {
+  async mount(el: HTMLElement): Promise<void> {
     this.container = el;
+    this.wasmActive = await initPqcWasm();
     this.render();
   },
 
@@ -48,31 +51,16 @@ export const MoscaCalcModule = {
   },
 
   calculate(): MoscaResult {
-    const totalExposure = this.x + this.y;
-    const isAtRisk = totalExposure > this.z;
-    const delta = totalExposure - this.z;
-
-    let riskLevel: MoscaResult['riskLevel'] = 'low';
-    let message = 'Your systems are well-positioned before Q-Day.';
-
-    if (delta > 5) {
-      riskLevel = 'critical';
-      message = `CRITICAL: Your data will be exposed ${delta} years before migration completes!`;
-    } else if (delta > 0) {
-      riskLevel = 'high';
-      message = `HIGH RISK: Migration must start immediately. Exposure window is ${delta} years.`;
-    } else if (delta === 0) {
-      riskLevel = 'medium';
-      message = 'BORDERLINE: Zero margin for error. Any migration delay creates vulnerability.';
-    }
+    const wasmRes = evaluateWasmMosca(this.x, this.y, this.z);
+    const riskLevel: MoscaResult['riskLevel'] = wasmRes.riskCode === 3 ? 'critical' : wasmRes.riskCode === 2 ? 'high' : wasmRes.riskCode === 1 ? 'medium' : 'low';
 
     return {
       x: this.x,
       y: this.y,
       z: this.z,
-      isAtRisk,
+      isAtRisk: wasmRes.isAtRisk,
       riskLevel,
-      message,
+      message: wasmRes.recommendation,
     };
   },
 
@@ -121,10 +109,13 @@ ${res.isAtRisk
       <div class="zr-card">
         <div class="card-header">
           <span class="card-title">Mosca's Theorem (X + Y > Z)</span>
-          <span class="badge" style="${riskBadge}">${res.riskLevel.toUpperCase()}</span>
+          <div style="display: flex; gap: 4px; align-items: center;">
+            <span class="badge" style="background: rgba(139,92,246,0.15); color: #a78bfa; font-size: 8px;">WASM ⚡</span>
+            <span class="badge" style="${riskBadge}">${res.riskLevel.toUpperCase()}</span>
+          </div>
         </div>
         <p style="font-size: 11px; color: var(--muted); margin-bottom: 8px;">
-          Determines if sensitive data will be compromised by quantum computers before post-quantum migration completes.
+          Calculates whether data confidentiality lifespan outlasts cryptographic migration before Q-Day.
         </p>
 
         <!-- Industry Presets -->

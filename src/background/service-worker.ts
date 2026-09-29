@@ -53,6 +53,25 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   broadcastTabContext(tabId, tab.url ?? '', tab.title ?? '');
 });
 
+// ── Security Headers & TLS Inspector (webRequest) ─────────
+const securityHeadersCache = new Map<number, Record<string, string>>();
+
+chrome.webRequest.onHeadersReceived.addListener(
+  (details) => {
+    if (details.type === 'main_frame' && details.responseHeaders) {
+      const headersMap: Record<string, string> = {};
+      for (const h of details.responseHeaders) {
+        if (h.name && h.value) {
+          headersMap[h.name.toLowerCase()] = h.value;
+        }
+      }
+      securityHeadersCache.set(details.tabId, headersMap);
+    }
+  },
+  { urls: ['<all_urls>'] },
+  ['responseHeaders']
+);
+
 function broadcastTabContext(tabId: number, url: string, title: string) {
   const ctx: TabContext = {
     tabId,
@@ -115,6 +134,12 @@ async function handleMessage(msg: ZRMessage): Promise<ZRResponse> {
       if (!profile) return { success: false, error: 'No proxy profile provided' };
       // Proxy setting handled in proxy-manager module
       return { success: true, data: { applied: true } };
+    }
+
+    case 'GET_SECURITY_HEADERS': {
+      const tId = msg.tabId || 0;
+      const headers = securityHeadersCache.get(tId) || {};
+      return { success: true, data: headers };
     }
 
     default:

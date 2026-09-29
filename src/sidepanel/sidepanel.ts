@@ -34,10 +34,10 @@ async function init() {
   TechDetectorModule.mount(document.getElementById('module-tech-detector')!);
   DomExtractorModule.mount(document.getElementById('module-dom-extractor')!);
   CookieManagerModule.mount(document.getElementById('module-cookie-manager')!);
-  ProxyManagerModule.mount(document.getElementById('module-proxy-manager')!);
+  await ProxyManagerModule.mount(document.getElementById('module-proxy-manager')!);
   SecurityUtilsModule.mount(document.getElementById('module-security-utils')!);
   PqcAnalyzerModule.mount(document.getElementById('module-pqc-analyzer')!);
-  MoscaCalcModule.mount(document.getElementById('module-mosca-calc')!);
+  await MoscaCalcModule.mount(document.getElementById('module-mosca-calc')!);
 
   // Bind tab buttons
   document.querySelectorAll<HTMLButtonElement>('.module-tab').forEach((btn) => {

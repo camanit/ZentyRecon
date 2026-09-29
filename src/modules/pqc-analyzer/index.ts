@@ -3,11 +3,13 @@
 // ============================================================
 
 import type { PqcScore } from '@/types';
+import { sendMessage } from '@/utils/messaging';
 
 export const PqcAnalyzerModule = {
   container: null as HTMLElement | null,
   currentScore: null as PqcScore | null,
   currentDomain: '',
+  securityHeaders: {} as Record<string, string>,
 
   mount(el: HTMLElement): void {
     this.container = el;
@@ -23,6 +25,17 @@ export const PqcAnalyzerModule = {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       const urlStr = tab?.url || '';
       const isHttps = urlStr.startsWith('https://');
+
+      if (tab?.id) {
+        const resp = await sendMessage({
+          type: 'GET_SECURITY_HEADERS',
+          tabId: tab.id,
+          timestamp: Date.now(),
+        }).catch(() => null);
+        if (resp?.success && resp.data) {
+          this.securityHeaders = resp.data as Record<string, string>;
+        }
+      }
 
       try {
         this.currentDomain = new URL(urlStr).hostname;
@@ -223,6 +236,34 @@ export const PqcAnalyzerModule = {
             </li>
           `).join('')}
         </ul>
+      </div>
+
+      <!-- Live Security Headers Inspection -->
+      <div class="zr-card">
+        <div class="card-header">
+          <span class="card-title">HTTP Security Headers</span>
+          <span class="badge badge-free">Live Inspect</span>
+        </div>
+        <div style="font-size: 11px; line-height: 1.8; margin-top: 4px;">
+          <div style="display: flex; justify-content: space-between;">
+            <span>Strict-Transport-Security (HSTS):</span>
+            <span style="font-weight: 700; color: ${this.securityHeaders['strict-transport-security'] ? '#10b981' : '#ef4444'};">
+              ${this.securityHeaders['strict-transport-security'] ? 'Enabled ✓' : 'Missing ⚠️'}
+            </span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span>Content-Security-Policy (CSP):</span>
+            <span style="font-weight: 700; color: ${this.securityHeaders['content-security-policy'] ? '#10b981' : '#f59e0b'};">
+              ${this.securityHeaders['content-security-policy'] ? 'Enforced ✓' : 'Missing ⚠️'}
+            </span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span>X-Frame-Options (Clickjacking):</span>
+            <span style="font-weight: 700; color: ${this.securityHeaders['x-frame-options'] ? '#10b981' : '#f59e0b'};">
+              ${this.securityHeaders['x-frame-options'] ? 'Protected ✓' : 'Unset'}
+            </span>
+          </div>
+        </div>
       </div>
     `;
 
