@@ -42,7 +42,7 @@ let manifest;
 try {
   manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   assert(manifest.manifest_version === 3, `Manifest version is 3 (found: ${manifest.manifest_version})`);
-  assert(manifest.version === '1.0.0', `Version is 1.0.0 (found: ${manifest.version})`);
+  assert(manifest.version === '0.10.0', `Version is 0.10.0 (found: ${manifest.version})`);
   assert(manifest.name === 'ZentyRecon', 'Name is ZentyRecon');
   assert(manifest.side_panel && manifest.side_panel.default_path, 'Side panel default_path configured');
 

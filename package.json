@@ -1,6 +1,6 @@
 {
   "name": "zentyrecon",
-  "version": "1.0.0",
+  "version": "0.10.0-alpha",
   "description": "> **Browser Extension** | Manifest V3 | Chrome · Edge · Firefox · Brave",
   "main": "index.js",
   "scripts": {
