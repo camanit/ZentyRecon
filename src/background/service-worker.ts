@@ -31,13 +31,47 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
   }
 });
 
-// ── Action Click → Toggle Side Panel ────────────────────────
-chrome.action.onClicked.addListener((tab) => {
-  if (!tab.id) return;
+// ── Action Click → Toggle Side Panel / Sidebar ──────────────
+chrome.action.onClicked.addListener(async (tab) => {
+  const browserApi = (globalThis as any).browser || (globalThis as any).chrome;
 
-  chrome.sidePanel.open({ tabId: tab.id }).catch((err) => {
-    console.warn('[ZentyRecon SW] Could not open side panel:', err);
-  });
+  // 1. Firefox: Native sidebarAction
+  if (browserApi?.sidebarAction) {
+    try {
+      if (typeof browserApi.sidebarAction.toggle === 'function') {
+        await browserApi.sidebarAction.toggle();
+        return;
+      } else if (typeof browserApi.sidebarAction.open === 'function') {
+        await browserApi.sidebarAction.open();
+        return;
+      }
+    } catch (e) {
+      console.warn('[ZentyRecon SW] Firefox sidebarAction error:', e);
+    }
+  }
+
+  // 2. Chromium (Chrome, Edge, Brave): Native sidePanel
+  if (chrome.sidePanel?.open && tab.id) {
+    try {
+      await chrome.sidePanel.open({ tabId: tab.id });
+      return;
+    } catch (err) {
+      console.warn('[ZentyRecon SW] Could not open side panel:', err);
+    }
+  }
+
+  // 3. Robust Fallback: Open Side Panel in standalone popup window
+  const sidePanelUrl = chrome.runtime.getURL('src/sidepanel/index.html');
+  if (chrome.windows?.create) {
+    chrome.windows.create({
+      url: sidePanelUrl,
+      type: 'popup',
+      width: 440,
+      height: 740,
+    });
+  } else {
+    chrome.tabs.create({ url: sidePanelUrl });
+  }
 });
 
 // ── Tab Events → Notify Side Panel ─────────────────────────

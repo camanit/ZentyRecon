@@ -38,8 +38,14 @@ manifest.browser_specific_settings.gecko.id = "zentyrecon@ctar.tech";
 manifest.browser_specific_settings.gecko.strict_min_version = "115.0";
 manifest.browser_specific_settings.gecko.data_collection_permissions = { required: ["none"] };
 
+manifest.sidebar_action = {
+  default_panel: "src/sidepanel/index.html",
+  default_title: "ZentyRecon",
+  default_icon: "icons/icon32.png"
+};
+
 fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), 'utf8');
-console.log('🦊 Injected Firefox-compatible background.scripts and data_collection_permissions');
+console.log('🦊 Injected Firefox-compatible background.scripts, sidebar_action, and data_collection_permissions');
 
 const version = manifest.version || '1.0.0';
 const zipName = `zentyrecon-v${version}.zip`;

@@ -27,6 +27,12 @@
     "default_path": "src/sidepanel/index.html"
   },
 
+  "sidebar_action": {
+    "default_panel": "src/sidepanel/index.html",
+    "default_title": "ZentyRecon",
+    "default_icon": "icons/icon32.png"
+  },
+
   "background": {
     "service_worker": "src/background/service-worker.ts",
     "scripts": ["src/background/service-worker.ts"],
