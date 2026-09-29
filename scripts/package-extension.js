@@ -27,6 +27,14 @@ if (!fs.existsSync(manifestPath)) {
 }
 
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+
+// Firefox AMO compatibility: inject background.scripts fallback
+if (manifest.background && manifest.background.service_worker) {
+  manifest.background.scripts = [manifest.background.service_worker];
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), 'utf8');
+  console.log('🦊 Injected Firefox-compatible background.scripts fallback');
+}
+
 const version = manifest.version || '1.0.0';
 const zipName = `zentyrecon-v${version}.zip`;
 const zipPath = path.join(RELEASE_DIR, zipName);
